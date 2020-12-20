@@ -1,1 +1,5 @@
 venv
+__pycache__
+.vscode
+helpers.py
+main6.py
