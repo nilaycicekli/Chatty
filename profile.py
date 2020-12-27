@@ -71,30 +71,30 @@ KV = '''
                 on_press:
                     root.screen_manager.current = "user_info"
             ItemDrawer:
-                icon: "account-multiple-outline"
-                text: "My friends"
-                on_press:
-                    root.screen_manager.current = "my_friends"
-            ItemDrawer:
                 icon: "bell-outline"
                 text: "Notifications"
                 on_press:
                     root.screen_manager.current = "notifications"
-            ItemDrawer:
-                icon: "account-cog-outline"
-                text: "Settings"
-                on_press:
-                    root.screen_manager.current = "settings"
             ItemDrawer:
                 icon: "camera-outline"
                 text: "Stories"
                 on_press:
                     root.screen_manager.current = "stories"
             ItemDrawer:
+                icon: "account-multiple-outline"
+                text: "My friends"
+                on_press:
+                    root.screen_manager.current = "my_friends"
+            ItemDrawer:
                 icon: "map-marker-outline"
                 text: "Find friends"
                 on_press:
                     root.screen_manager.current = "find_friends"
+            ItemDrawer:
+                icon: "account-cog-outline"
+                text: "Settings"
+                on_press:
+                    root.screen_manager.current = "settings"
             ItemDrawer:
                 icon: "help-circle-outline"
                 text: "Help"
