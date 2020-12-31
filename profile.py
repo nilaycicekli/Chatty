@@ -71,25 +71,10 @@ KV = '''
                 on_press:
                     root.screen_manager.current = "user_info"
             ItemDrawer:
-                icon: "bell-outline"
-                text: "Notifications"
-                on_press:
-                    root.screen_manager.current = "notifications"
-            ItemDrawer:
-                icon: "camera-outline"
-                text: "Stories"
-                on_press:
-                    root.screen_manager.current = "stories"
-            ItemDrawer:
                 icon: "account-multiple-outline"
                 text: "My friends"
                 on_press:
                     root.screen_manager.current = "my_friends"
-            ItemDrawer:
-                icon: "map-marker-outline"
-                text: "Find friends"
-                on_press:
-                    root.screen_manager.current = "find_friends"
             ItemDrawer:
                 icon: "account-cog-outline"
                 text: "Settings"
@@ -130,33 +115,83 @@ Screen:
 
             Screen:
                 name:"user_info"
-                MDLabel:
-                    text: "USER INFO"
-                    halign: "center"
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    spacing: 40
+                    padding: 80
+                    size_hint_y: 0.93
+                    MDTextField:
+                        id: username
+                        text: "ncicekli"
+                        hint_text: "username"
+                        helper_text: "edit your username"
+                        helper_text_mode: "on_focus"
+                        required: True
+                        max_text_length: 20
+                        color_mode: 'custom' 
+                        icon_right: 'account-outline'
+                    MDBoxLayout:
+                        spacing: 30
+                        MDTextField:
+                            id: fname
+                            text: "Nilay"
+                            hint_text: "first name"
+                            helper_text: "edit your first name"
+                            helper_text_mode: "on_focus"
+                            max_text_length: 20
+                            color_mode: 'custom' 
+                            icon_right: 'pencil-outline'
+                        MDTextField:
+                            id: lname
+                            text: "Cicekli"
+                            hint_text: "last name"
+                            helper_text: "edit your last name"
+                            helper_text_mode: "on_focus"
+                            max_text_length: 30
+                            color_mode: 'custom' 
+                            icon_right: 'pencil-outline'
+                    MDTextField:
+                        id: email
+                        text: "ncicekli@gmail.com"
+                        hint_text: "email"
+                        helper_text: "edit your email"
+                        helper_text_mode: "on_focus"
+                        required: True
+                        max_text_length: 50
+                        color_mode: 'custom' 
+                        icon_right: 'email-outline'
+                    MDRaisedButton:
+                        text: "Save"
+                        md_bg_color: (52.0/255,142.0/255,201.0/255,1) 
+                        pos_hint: {'center_x':0.93,'center_y':1}
+                    MDBoxLayout:
+                        TwoLineIconListItem:
+                            id: location
+                            text: "Location"
+                            secondary_text: "Istanbul,TR"
+
+                            IconLeftWidget:
+                                icon: "map-marker-outline"
+                                theme_text_color: 'Custom'
+                                text_color: (234.0/255,35.0/255,0.0/255,1)
+                        TwoLineIconListItem:
+                            id: streak
+                            text: "Streak"
+                            secondary_text: "26"
+
+                            IconLeftWidget:
+                                icon: "fire"
+                                theme_text_color: 'Custom'
+                                text_color: (234.0/255,35.0/255,0.0/255,1)
             Screen:
                 name:"my_friends"
                 MDLabel:
                     text: "MY FRIENDS"
                     halign: "center"
             Screen:
-                name:"notifications"
-                MDLabel:
-                    text: "NOTIFICATIONS"
-                    halign: "center"
-            Screen:
                 name:"settings"
                 MDLabel:
                     text: "SETTINGS"
-                    halign: "center"
-            Screen:
-                name:"stories"
-                MDLabel:
-                    text: "STORIES"
-                    halign: "center"
-            Screen:
-                name:"find_friends"
-                MDLabel:
-                    text: "FIND FRIENDS"
                     halign: "center"
             Screen:
                 name:"help"
@@ -203,7 +238,7 @@ class DrawerList(ThemableBehavior, MDList):
 class ProfileView(MDApp):
     
     def build(self):
-        self.theme_cls.primary_palette = "Orange"
+        self.theme_cls.primary_palette = "Blue"
         self.theme_cls.primary_hue ='600'
         self.theme_cls.theme_style="Light"
         return Builder.load_string(KV)
