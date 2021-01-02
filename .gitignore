@@ -1,8 +1,9 @@
 venv
 __pycache__
 .vscode
-helpers.py
 main6.py
 loc.py
 try.py
 explore1.py
+explore_old.py
+tabb.py

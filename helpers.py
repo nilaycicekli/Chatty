@@ -1,25 +1,89 @@
-'''
-email address
-username
-online/offline
-status
-friend list
-streak
-interest with tags
-stories
-location
-profile photos???
-'''
-from kivymd.app import MDApp
-from kivy.lang import Builder
-
+from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.button import MDFlatButton
 from kivy.properties import StringProperty, ListProperty, ObjectProperty
-from kivymd.theming import ThemableBehavior
 from kivymd.uix.list import OneLineIconListItem, MDList
+from kivymd.theming import ThemableBehavior
+KV = '''
+
+<UserBox>:
+    orientation: 'vertical'
+    padding: 20
+    spacing: 30
+    adaptive_height: True
+    radius: [10,10,10,10]
+    md_bg_color: (245.0/255,245.0/255,245.0/255,1) 
+
+    MDLabel:
+        id: username
+        text: "username"
+        halign: 'center'
+        font_style: 'Caption'
+        theme_text_color: 'Primary'
+        font_style: "Button"
+    
+    MDLabel:
+        id: bio
+        text: "bio"
+        halign: 'center'
+        font_style: 'Caption'
+    
+    MDBoxLayout:
+        radius: [25, 25,25, 25]
+        MDIcon:
+            icon: 'fire'
+            halign: 'right'
+            valign: 'center'
+            size_hint: (.25,1)
+            theme_text_color: 'Custom'
+            text_color: (234.0/255,35.0/255,0.0/255,1)
+        MDLabel:
+            id: streak
+            text: 'streak number'
+            halign: 'left'
+            valign: 'center'
+            size_hint: (.25,1)
+            font_style: 'Caption'
+            theme_text_color: 'Primary'
+        MDIconButton:
+            icon: 'plus-circle'
+            theme_text_color: 'Custom' 
+            text_color: (27.0/255,71.0/255,117.0/255,1)
+            pos_hint: {'center_x':1,'center_y':0.2}
+            on_release: 
+                root.add_friend()
 
 
-profile_KV = '''
+Screen:
+    ScrollView:
+        size_hint: (1, None)
+        size: (root.width, root.height)
+        MDGridLayout:
+            id: layout
+            cols: 2
+            spacing: 50
+            adaptive_height: True
+            padding: 50
+            md_bg_color : (39.0/255,41.0/255,43.0/255,1)
+           
+'''
+
+
+class UserBox(MDBoxLayout):
+
+    def add_friend(self):
+        close_button = MDFlatButton(text="close",on_release= self.close_dialog)
+        more_button = MDFlatButton(text="more")
+        self.dialog = MDDialog(title="Message Sent", text='Keep Exploring!', size_hint=(0.7,1),buttons=[close_button,more_button])
+        self.dialog.open()
+        print("Friend Added")
+        #print(self.username.text)
+    
+    def close_dialog(self,obj):
+        self.dialog.dismiss()
+
+KV = '''
 # Menu item in the DrawerList list.
 <ItemDrawer>:
     theme_text_color: "Custom"
@@ -69,25 +133,21 @@ profile_KV = '''
                 icon: "account-circle-outline"
                 text: "User info"
                 on_press:
-                    root.nav_drawer.set_state("close")
                     root.screen_manager.current = "user_info"
             ItemDrawer:
                 icon: "account-multiple-outline"
                 text: "My friends"
                 on_press:
-                    root.nav_drawer.set_state("close")
                     root.screen_manager.current = "my_friends"
             ItemDrawer:
                 icon: "account-cog-outline"
                 text: "Settings"
                 on_press:
-                    root.nav_drawer.set_state("close")
                     root.screen_manager.current = "settings"
             ItemDrawer:
                 icon: "help-circle-outline"
                 text: "Help"
                 on_press:
-                    root.nav_drawer.set_state("close")
                     root.screen_manager.current = "help"
             ItemDrawer:
                 icon: "logout"
@@ -95,18 +155,20 @@ profile_KV = '''
                 theme_text_color: "Custom"
                 text_color: (234.0/255,35.0/255,0.0/255,1)
                 on_press:
-                    root.nav_drawer.set_state("close")
                     root.screen_manager.current = "logout"
                 
 
 Screen:
+    BoxLayout:
+        orientation: 'vertical'
 
-    MDToolbar:
-        id: toolbar
-        pos_hint: {"top": 1}
-        title: "Profile"
-        elevation: 10
-        left_action_items: [['menu', lambda x: nav_drawer.set_state('open')]]  
+        MDToolbar:
+            id: toolbar
+            pos_hint: {"top": 1}
+            title: "Profile"
+            elevation: 10
+            left_action_items: [['menu', lambda x: nav_drawer.set_state('open')]]        
+        Widget:
   
 
     NavigationLayout:
@@ -235,15 +297,3 @@ class DrawerList(ThemableBehavior, MDList):
                 item.text_color = self.theme_cls.text_color
                 break
         instance_item.text_color = self.theme_cls.primary_color
-
-
-class ProfileView(MDApp):
-    
-    def build(self):
-        self.theme_cls.primary_palette = "Blue"
-        self.theme_cls.primary_hue ='600'
-        self.theme_cls.theme_style="Light"
-        return Builder.load_string(profile_KV)
-
-
-ProfileView().run()
