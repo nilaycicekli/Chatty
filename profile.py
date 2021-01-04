@@ -6,9 +6,7 @@ status
 friend list
 streak
 interest with tags
-stories
 location
-profile photos???
 '''
 from kivymd.app import MDApp
 from kivy.lang import Builder
@@ -166,6 +164,7 @@ Screen:
                         text: "Save"
                         md_bg_color: (52.0/255,142.0/255,201.0/255,1) 
                         pos_hint: {'center_x':0.93,'center_y':1}
+                        on_release:
                     MDBoxLayout:
                         TwoLineIconListItem:
                             id: location
@@ -238,12 +237,14 @@ class DrawerList(ThemableBehavior, MDList):
 
 
 class ProfileView(MDApp):
-    
+
     def build(self):
         self.theme_cls.primary_palette = "Blue"
         self.theme_cls.primary_hue ='600'
         self.theme_cls.theme_style="Light"
         return Builder.load_string(profile_KV)
+
+
 
 
 ProfileView().run()
