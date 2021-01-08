@@ -5,85 +5,16 @@ from kivymd.uix.button import MDFlatButton
 from kivy.properties import StringProperty, ListProperty, ObjectProperty
 from kivymd.uix.list import OneLineIconListItem, MDList
 from kivymd.theming import ThemableBehavior
-KV = '''
-
-<UserBox>:
-    orientation: 'vertical'
-    padding: 20
-    spacing: 30
-    adaptive_height: True
-    radius: [10,10,10,10]
-    md_bg_color: (245.0/255,245.0/255,245.0/255,1) 
-
-    MDLabel:
-        id: username
-        text: "username"
-        halign: 'center'
-        font_style: 'Caption'
-        theme_text_color: 'Primary'
-        font_style: "Button"
-    
-    MDLabel:
-        id: bio
-        text: "bio"
-        halign: 'center'
-        font_style: 'Caption'
-    
-    MDBoxLayout:
-        radius: [25, 25,25, 25]
-        MDIcon:
-            icon: 'fire'
-            halign: 'right'
-            valign: 'center'
-            size_hint: (.25,1)
-            theme_text_color: 'Custom'
-            text_color: (234.0/255,35.0/255,0.0/255,1)
-        MDLabel:
-            id: streak
-            text: 'streak number'
-            halign: 'left'
-            valign: 'center'
-            size_hint: (.25,1)
-            font_style: 'Caption'
-            theme_text_color: 'Primary'
-        MDIconButton:
-            icon: 'plus-circle'
-            theme_text_color: 'Custom' 
-            text_color: (27.0/255,71.0/255,117.0/255,1)
-            pos_hint: {'center_x':1,'center_y':0.2}
-            on_release: 
-                root.add_friend()
+from kivymd.uix.chip import MDChip
+from kivy.uix.screenmanager import Screen, ScreenManager
 
 
-Screen:
-    ScrollView:
-        size_hint: (1, None)
-        size: (root.width, root.height)
-        MDGridLayout:
-            id: layout
-            cols: 2
-            spacing: 50
-            adaptive_height: True
-            padding: 50
-            md_bg_color : (39.0/255,41.0/255,43.0/255,1)
-           
-'''
 
-
-class UserBox(MDBoxLayout):
-
-    def add_friend(self):
-        close_button = MDFlatButton(text="close",on_release= self.close_dialog)
-        more_button = MDFlatButton(text="more")
-        self.dialog = MDDialog(title="Message Sent", text='Keep Exploring!', size_hint=(0.7,1),buttons=[close_button,more_button])
-        self.dialog.open()
-        print("Friend Added")
-        #print(self.username.text)
-    
-    def close_dialog(self,obj):
-        self.dialog.dismiss()
-
-KV = '''
+profile_KV = '''
+<TagChip>:
+    callback: app.tag_remove
+    icon: ""
+    pos_hint: {'center_y':0.5}
 # Menu item in the DrawerList list.
 <ItemDrawer>:
     theme_text_color: "Custom"
@@ -133,21 +64,25 @@ KV = '''
                 icon: "account-circle-outline"
                 text: "User info"
                 on_press:
+                    root.nav_drawer.set_state("close")
                     root.screen_manager.current = "user_info"
             ItemDrawer:
                 icon: "account-multiple-outline"
                 text: "My friends"
                 on_press:
+                    root.nav_drawer.set_state("close")
                     root.screen_manager.current = "my_friends"
             ItemDrawer:
                 icon: "account-cog-outline"
                 text: "Settings"
                 on_press:
+                    root.nav_drawer.set_state("close")
                     root.screen_manager.current = "settings"
             ItemDrawer:
                 icon: "help-circle-outline"
                 text: "Help"
                 on_press:
+                    root.nav_drawer.set_state("close")
                     root.screen_manager.current = "help"
             ItemDrawer:
                 icon: "logout"
@@ -155,20 +90,18 @@ KV = '''
                 theme_text_color: "Custom"
                 text_color: (234.0/255,35.0/255,0.0/255,1)
                 on_press:
+                    root.nav_drawer.set_state("close")
                     root.screen_manager.current = "logout"
                 
 
 Screen:
-    BoxLayout:
-        orientation: 'vertical'
 
-        MDToolbar:
-            id: toolbar
-            pos_hint: {"top": 1}
-            title: "Profile"
-            elevation: 10
-            left_action_items: [['menu', lambda x: nav_drawer.set_state('open')]]        
-        Widget:
+    MDToolbar:
+        id: toolbar
+        pos_hint: {"top": 1}
+        title: "Profile"
+        elevation: 10
+        left_action_items: [['menu', lambda x: nav_drawer.set_state('open')]]  
   
 
     NavigationLayout:
@@ -181,19 +114,32 @@ Screen:
                 name:"user_info"
                 MDBoxLayout:
                     orientation: 'vertical'
-                    spacing: 40
-                    padding: 80
-                    size_hint_y: 0.93
-                    MDTextField:
-                        id: username
-                        text: "ncicekli"
-                        hint_text: "username"
-                        helper_text: "edit your username"
-                        helper_text_mode: "on_focus"
-                        required: True
-                        max_text_length: 20
-                        color_mode: 'custom' 
-                        icon_right: 'account-outline'
+                    spacing: 12
+                    padding: 60
+                    size_hint_y: 0.98
+                    MDBoxLayout:
+                        spacing: 30
+                        MDTextField:
+                            id: username
+                            text: "john"
+                            hint_text: "username"
+                            helper_text: "edit your username"
+                            helper_text_mode: "on_focus"
+                            required: True
+                            max_text_length: 20
+                            color_mode: 'custom' 
+                            icon_right: 'account-outline'
+                            disabled: True
+                        MDTextField:
+                            id: status
+                            size_hint_x: None
+                            text: ""
+                            hint_text: "status"
+                            helper_text: "how you feel"
+                            helper_text_mode: "on_focus"
+                            color_mode: 'custom' 
+                            icon_right: 'face'
+                            on_focus: if self.focus: app.menu.open()
                     MDBoxLayout:
                         spacing: 30
                         MDTextField:
@@ -224,15 +170,47 @@ Screen:
                         max_text_length: 50
                         color_mode: 'custom' 
                         icon_right: 'email-outline'
+                    MDTextField:
+                        id: bio
+                        text: "Hello this is my bio"
+                        hint_text: "bio"
+                        helper_text: "tell us about yourself"
+                        helper_text_mode: "on_focus"
+                        max_text_length: 150
+                        color_mode: 'custom' 
+                        icon_right: 'comment-edit-outline'
+                        multiline: True
                     MDRaisedButton:
                         text: "Save"
                         md_bg_color: (52.0/255,142.0/255,201.0/255,1) 
                         pos_hint: {'center_x':0.93,'center_y':1}
+                        on_release: app.update_profile(username=username.text,status=status.text,fname=fname.text,lname=lname.text,email=email.text,bio=bio.text)
                     MDBoxLayout:
+                        id: tag_box
+                        spacing: 15
+                        MDTextField:
+                            id: tags
+                            size_hint_x: None
+                            text: ""
+                            hint_text: "tag"
+                            helper_text: "find your peers"
+                            helper_text_mode: "on_focus"
+                            color_mode: 'custom' 
+                            icon_right: 'label-outline'
+                            on_focus: if self.focus: app.tag_menu.open()
+                        MDIconButton:
+                            icon: 'plus-circle'
+                            theme_text_color: 'Custom' 
+                            text_color: (27.0/255,71.0/255,117.0/255,1)
+                            on_release: 
+                                app.new_tag()
+                    MDBoxLayout:
+                        size_hint_y: 0.8
                         TwoLineIconListItem:
                             id: location
                             text: "Location"
                             secondary_text: "Istanbul,TR"
+                            on_release: app.hey()
 
                             IconLeftWidget:
                                 icon: "map-marker-outline"
@@ -277,10 +255,11 @@ Screen:
                 screen_manager: screen_manager
 '''
 
-
 class ContentNavigationDrawer(BoxLayout):
     screen_manager = ObjectProperty()
 
+class TagChip(MDChip):
+    pass
 
 class ItemDrawer(OneLineIconListItem):
     icon = StringProperty()
@@ -297,3 +276,106 @@ class DrawerList(ThemableBehavior, MDList):
                 item.text_color = self.theme_cls.text_color
                 break
         instance_item.text_color = self.theme_cls.primary_color
+
+chat_KV = """
+# the whole screen.
+Screen:
+    window_manager: window_manager
+    NavigationLayout:
+        ScreenManager:
+            
+            # this is out chat screen.
+            Screen:
+                BoxLayout:
+                    orientation: 'vertical'
+                    MDToolbar:
+                        title: "chat"
+                        left_action_items: [["menu", lambda x: nav_drawer.set_state()]]
+                        elevation: 5
+                    Screen:    
+                        MDLabel:
+                            text: 'messaging here!'
+                            halign: 'center'
+                    GridLayout:
+                        size_hint_y: 0.1
+                        cols: 3
+                        rows: 1
+                        AnchorLayout:
+                            TextInput:
+                                id: input
+                                hint_text: 'message...'
+                        AnchorLayout:
+                            size_hint: (0.1,0)
+                            anchor_x: 'center'
+                            Button:
+                                text: 'send'
+                        AnchorLayout:
+                            size_hint: (0.1,0)
+                            anchor_x: 'center'
+                            Button:
+                                text: 'media'
+                            
+                
+                            
+# this is the panel that pops out of the left                   
+        MDNavigationDrawer:
+            id: nav_drawer
+
+            MDScreen:
+                BoxLayout:
+                    orientation: 'vertical'
+                    # choose chat list (personal/private)
+                    
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_y: 0.1
+                        padding: 8
+                        
+                        Button:
+                            text: 'friends'
+                            on_press:
+                                root.window_manager.current = "friends_window"
+                        Button:
+                            text: 'private'
+                            on_press:
+                                root.window_manager.current = "private_window"
+                        Button:
+                            on_press:
+                                root.window_manager.current = "group_window"
+                            text: 'group'
+                            
+                    WindowManager:
+                        id: window_manager
+                        PrivateWindow:
+                            name: "private_window"
+                        GroupWindow:
+                            name: "group_window"
+                        FriendList:
+                            name: "friends_window"
+                            
+<PrivateWindow>:
+    MDLabel:
+        text: 'it works but wont switch!'
+        halign: 'center'
+<GroupWindow>:
+    MDLabel:
+        text: 'it works!'
+        halign: 'center'
+<FriendList>:
+    MDLabel:
+        text: 'it works!'
+        halign: 'center'                                         
+"""
+
+# private-chats.
+class PrivateWindow(Screen):
+    pass
+# group-chats.
+class GroupWindow(Screen):
+    pass
+# friends-list.
+class FriendList(Screen):
+    pass
+# enables the screen manager to work.
+class WindowManager(ScreenManager):
+    pass

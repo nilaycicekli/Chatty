@@ -12,6 +12,8 @@ location
 
 from kivymd.app import MDApp
 from kivy.lang import Builder
+
+
 from kivy.clock import Clock
 
 from kivy.network.urlrequest import UrlRequest
@@ -309,30 +311,30 @@ class DrawerList(ThemableBehavior, MDList):
 class ProfileView(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.screen = Builder.load_string(profile_KV)
+        self.profilescreen = Builder.load_string(profile_KV)
         self.username = "nilay"
         self.user_ref = db.collection(u'users').document(self.username)
         self.user = self.get_by_username(self.username)
-        self.screen.ids.username.text = self.username
-        self.screen.ids.fname.text = self.user['fname']
-        self.screen.ids.lname.text = self.user['lname']
-        self.screen.ids.email.text = self.user['email']
-        self.screen.ids.status.text = self.user['status']
-        self.screen.ids.bio.text = self.user['bio']
-        self.screen.ids.streak.secondary_text = str(self.user['streak'])
-        # self.screen.ids.location.secondary_text = self.user['city']
-        self.screen.ids.location.secondary_text = "istanbul"
+        self.profilescreen.ids.username.text = self.username
+        self.profilescreen.ids.fname.text = self.user['fname']
+        self.profilescreen.ids.lname.text = self.user['lname']
+        self.profilescreen.ids.email.text = self.user['email']
+        self.profilescreen.ids.status.text = self.user['status']
+        self.profilescreen.ids.bio.text = self.user['bio']
+        self.profilescreen.ids.streak.secondary_text = str(self.user['streak'])
+        # self.profilescreen.ids.location.secondary_text = self.user['city']
+        self.profilescreen.ids.location.secondary_text = "istanbul"
         for t in self.user['tags']:
-            self.screen.ids.tag_box.add_widget(TagChip(label=t,icon="coffee"))
+            self.profilescreen.ids.tag_box.add_widget(TagChip(label=t,icon="coffee"))
     
     def set_item(self, instance):
         def set_item(interval):
-            self.screen.ids.status.text = instance.text
+            self.profilescreen.ids.status.text = instance.text
         Clock.schedule_once(set_item, 0.3)
 
     def set_item_tag(self, instance):
         def set_item_tag(interval):
-            self.screen.ids.tags.text = instance.text
+            self.profilescreen.ids.tags.text = instance.text
         Clock.schedule_once(set_item_tag, 0.3)
 
     def build(self):
@@ -342,7 +344,7 @@ class ProfileView(MDApp):
         {"icon": "git", "text": "sad"},
         {"icon": "git", "text": "away"},]
         self.menu = MDDropdownMenu(
-            caller=self.screen.ids.status,
+            caller=self.profilescreen.ids.status,
             items=menu_items,
             position="bottom",
             callback=self.set_item,
@@ -355,7 +357,7 @@ class ProfileView(MDApp):
         {"text": "dancing"},
         {"text": "music"},]
         self.tag_menu = MDDropdownMenu(
-            caller=self.screen.ids.tags,
+            caller=self.profilescreen.ids.tags,
             items=tag_menu_items,
             position="bottom",
             callback=self.set_item_tag,
@@ -365,7 +367,7 @@ class ProfileView(MDApp):
         self.theme_cls.primary_hue ='600'
         self.theme_cls.theme_style="Light"
         
-        return self.screen
+        return self.profilescreen
 
     # edit profile info
     def update_profile(self,**kwargs):
@@ -378,12 +380,12 @@ class ProfileView(MDApp):
         toast("updated!")
         
     def new_tag(self):
-        tag = self.screen.ids.tags.text
+        tag = self.profilescreen.ids.tags.text
         if len(self.user['tags']) >= 4:
                 toast("you can have 4 tags at most :( ")
                 return
         if tag:
-            self.screen.ids.tag_box.add_widget(TagChip(label=tag,icon="coffee"))
+            self.profilescreen.ids.tag_box.add_widget(TagChip(label=tag,icon="coffee"))
             self.user['tags'].append(tag)
             self.tag_add([tag])
         else:
@@ -412,7 +414,7 @@ class ProfileView(MDApp):
 
     def tag_remove(self,instance,value):
     #  remove a tag from the 'tags' array field.
-        self.screen.ids.tag_box.remove_widget(instance)
+        self.profilescreen.ids.tag_box.remove_widget(instance)
         self.user['tags'].remove(value)
         self.user_ref.update({u'tags': firestore.ArrayRemove([value])})
         
