@@ -1,5 +1,5 @@
 # code snippets: https://github.com/GoogleCloudPlatform/python-docs-samples/blob/41095eba777a94e2748a233fd5a2df826792086a/firestore/cloud-client/snippets.py#L273-L279
-
+# firebase docs: https://firebase.google.com/docs/firestore/query-data/queries#python_3
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
@@ -14,7 +14,7 @@ default_app = firebase_admin.initialize_app(cred)
 db = firestore.client() 
 
 # create a new document
-def add(username, fname, lname, email, bio, streak=0,  tags=[], status='happy', location=()):
+def add(username, fname, lname, email, bio, streak=0,  tags=[], status='happy', location=(),city=''):
     # with specified document id.
     doc_ref = db.collection(u'users').document(f'{username}') 
     doc_ref.set({ # if you uncommented the line above, then chanhe this line to doc_ref.set({, default = db.collection(u'users').add({
@@ -28,6 +28,7 @@ def add(username, fname, lname, email, bio, streak=0,  tags=[], status='happy', 
         'status': status,
         'location': location,
         'created': datetime.datetime.now(),
+        'city':city
 
     })
 # create a new user example
@@ -48,7 +49,7 @@ def get_all(collection="users"):
     for doc in docs:
         print(f'{doc.id} => {doc.to_dict()}')
         arr.append(doc.to_dict())
-        return arr
+    return arr
 
 
 
@@ -60,12 +61,12 @@ def get_by_doc_id(docid):
     dic = doc.to_dict()
     return dic
 
-# get a document by username. DOES NOT WORK RIGHT NOW!!
+# get a document by username.
 def get_by_username(username):
-    doc = db.collection(u'users').where(u'fname', u'==', u"john").stream()
+    doc = db.collection(u'users').where(u'username', u'==',username).stream()
     #print(f'{doc.id} => {doc.to_dict()}')
-    print(doc)
-
+    for d in doc:
+        print(f'{d.id} => {d.to_dict()}')
 # update some fields. but not array fields. you can update multiple
 def update(username,**kwargs):
     user_ref = db.collection(u'users').document(username)

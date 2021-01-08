@@ -8,7 +8,7 @@
 import kivy
 from kivy.lang import Builder
 from kivymd.app import MDApp
-from explore import explore_KV, UserBox
+from explore import explore_KV
 
 kivy.require("2.0.0")
 

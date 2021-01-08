@@ -15,6 +15,15 @@ from kivymd.utils import asynckivy
 
 from helpers import DrawerList, ContentNavigationDrawer, ItemDrawer
 
+import firebase_admin
+from firebase_admin import firestore
+import db
+
+import random
+
+db = firestore.client()
+
+
 kivy.require("2.0.0")
 
 explore_KV = '''
@@ -74,6 +83,7 @@ explore_KV = '''
                 theme_text_color: 'Custom'
                 text_color: (234.0/255,35.0/255,0.0/255,1)
             MDLabel:
+                id: streak
                 text: '5'
                 halign: 'center'
             
@@ -174,17 +184,37 @@ class Explore(MDApp):
         
         self.screen = Builder.load_string(explore_KV)
 
+        self.username = "nilay"
+        self.user_ref = db.collection(u'users').document(self.username)
+        self.user = self.get_by_username(self.username)
+
+        self.friend_match_arr =  self.tag_match(self.user['tags'])
+        if len(self.friend_match_arr) < 3:
+            self.friend_match_arr += self.get_all()
+
+
         self.set_list()
         self.set_list_loc()
         
         return self.screen
 
     def set_list(self):
+        self.friend_match_arr =  self.tag_match(self.user['tags'])
+        if len(self.friend_match_arr) < 3:
+            self.friend_match_arr += self.get_all()
+        random.shuffle(self.friend_match_arr)
         async def set_list():
-            for i in range(20):
+            for u in self.friend_match_arr:
+                if u['username']==self.username: 
+                    self.friend_match_arr.remove(u)
+                    continue
                 await asynckivy.sleep(0)
                 userbox = UserCard()
-                userbox.ids.username.text = f'username {i}'
+                userbox.ids.username.text = u['username']
+                userbox.ids.username.secondary_text = u['status']
+                userbox.ids.bio.text = u['bio']
+                userbox.ids.streak.text = str(u['streak'])
+                userbox.ids.tag.text = ', '.join(u['tags'])
                 self.screen.ids.layout.add_widget(userbox)
         asynckivy.start(set_list())
 
@@ -221,6 +251,32 @@ class Explore(MDApp):
             self.tick = 0
 
         Clock.schedule_once(refresh_callback_loc, 1)
+
+    # get all the data in a collection
+    def get_all(self,collection="users"):
+        collection_ref = db.collection(f'{collection}')
+        docs = collection_ref.stream()
+        arr = []
+        for doc in docs:
+            print(f'{doc.id} => {doc.to_dict()}')
+            arr.append(doc.to_dict())
+        return arr
+
+    # people with similar interests
+    def tag_match(self,tag=[]):
+        collection_ref = db.collection(u'users')
+        query = collection_ref.where(u'tags', u'array_contains_any', tag)
+        result = query.stream()
+        arr = []
+        for r in result:
+            # print(f'{r.id} => {r.to_dict()}')
+            arr.append(r.to_dict())
+        return arr
+
+    def get_by_username(self, username):
+        doc = db.collection(u'users').where(u'username', u'==',username).stream()
+        for d in doc:
+            return d.to_dict()
 
     
 
