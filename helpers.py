@@ -7,6 +7,9 @@ from kivymd.uix.list import OneLineIconListItem, MDList
 from kivymd.theming import ThemableBehavior
 from kivymd.uix.chip import MDChip
 from kivy.uix.screenmanager import Screen, ScreenManager
+from kivymd.uix.card import MDCard
+from kivymd.uix.list import IRightBodyTouch
+
 
 
 
@@ -379,3 +382,157 @@ class FriendList(Screen):
 # enables the screen manager to work.
 class WindowManager(ScreenManager):
     pass
+
+
+# explore page
+explore_KV = '''
+<ItemDrawerExplore>:
+    theme_text_color: "Custom"
+    on_release: self.parent.set_color_item(self)
+    on_press: lambda x: self.on_press()
+
+    IconLeftWidget:
+        id: icon
+        icon: root.icon
+        theme_text_color: "Custom"
+        text_color: root.text_color
+
+<ContentNavigationDrawerExplore>:
+    orientation: "vertical"
+    padding: "8dp"
+    spacing: "8dp"
+    ScrollView:
+        DrawerList:
+            id: md_list_explore_menu_items
+            ItemDrawerExplore:
+                icon: "earth"
+                text: "World Wide"
+                on_press:
+                    root.nav_drawer.set_state("close")
+                    root.screen_manager.current = "scr 1"
+            ItemDrawerExplore:
+                icon: "map-marker-outline"
+                text: "My location"
+                on_press:
+                    root.nav_drawer.set_state("close")
+                    root.screen_manager.current = "scr 2"
+
+<UserCard>:
+    orientation: "vertical"
+    padding: '15dp'
+    spacing: '20dp'
+    pos_hint: {"center_x": .5, "center_y": .5}
+    size_hint: 1,None
+    size: "280dp", "210dp"
+    radius: [15,15,15,15]
+    TwoLineAvatarIconListItem:
+        id: username
+        text: "nilayc"
+        secondary_text: 'happy'
+        font_style: 'H6'
+        size_hint_y: None
+        IconLeftWidget:
+            icon: "account-plus-outline"
+            on_release: 
+                root.add_friend()
+        Container:
+            id: container
+          
+            MDIcon:
+                icon: "fire"
+                theme_text_color: 'Custom'
+                text_color: (234.0/255,35.0/255,0.0/255,1)
+            MDLabel:
+                id: streak
+                text: '5'
+                halign: 'center'
+            
+
+    MDLabel:
+        id: bio
+        text: 'Hello, im nilay. I take photos. I like smart and funny people. I like talking about countries. text me!'
+        theme_text_color: 'Secondary'
+        size_hint_y: .8
+        size_hint_x: .9
+        pos_hint: {"center_x": .5, "center_y": 1}
+    MDLabel:
+        id: tag
+        text: 'tag1 tag2 tag3 tag4 tag5'
+        theme_text_color: 'Secondary'
+        size_hint_x: .9
+        pos_hint: {"center_x": .5, "center_y": 1}
+
+
+
+Screen:
+    MDToolbar:
+        id: toolbar
+        halign: 'center'
+        title: 'explore'
+        md_bg_color: .2, .2, .2, 1
+        specific_text_color: 1, 1, 1, 1
+        pos_hint: {"top": 1}
+        left_action_items: [["menu", lambda x: nav_drawer.set_state("open")]]
+    NavigationLayout:
+        x: toolbar.height
+        ScreenManager:
+            id: screen_manager
+            Screen:
+                name: 'scr 1'
+                MDScrollViewRefreshLayout:
+                    id: refresh_layout
+                    refresh_callback: app.refresh_callback
+                    root_layout: root
+                    size_hint: (1, .90)
+                    MDGridLayout:
+                        id: layout
+                        cols: 2
+                        spacing: 50
+                        adaptive_height: True
+                        padding: 50
+                        md_bg_color : (39.0/255,41.0/255,43.0/255,1)
+            Screen:
+                name: 'scr 2'
+                MDScrollViewRefreshLayout:
+                    id: refresh_layout2
+                    refresh_callback: app.refresh_callback_loc
+                    root_layout: root
+                    size_hint: (1, .90)
+                    MDGridLayout:
+                        id: layout2
+                        cols: 2
+                        spacing: 50
+                        adaptive_height: True
+                        padding: 50
+                        md_bg_color : (39.0/255,41.0/255,43.0/255,1)
+
+        MDNavigationDrawer:
+            id: nav_drawer
+
+            ContentNavigationDrawerExplore:
+                screen_manager: screen_manager
+                nav_drawer: nav_drawer
+                    
+'''
+class ContentNavigationDrawerExplore(BoxLayout):
+    screen_manager = ObjectProperty()
+
+class UserCard(MDCard):
+    def add_friend(self):
+        close_button = MDFlatButton(text="close",on_release= self.close_dialog)
+        more_button = MDFlatButton(text="more")
+        self.dialog = MDDialog(title="Message Sent", text='Keep Exploring!', size_hint=(0.7,1),buttons=[close_button,more_button])
+        self.dialog.open()
+        print("Friend Added")
+        #print(self.username.text)
+    
+    def close_dialog(self,obj):
+        self.dialog.dismiss()
+
+class Container(IRightBodyTouch, MDBoxLayout):
+    adaptive_width = True
+
+
+class ItemDrawerExplore(OneLineIconListItem):
+    icon = StringProperty()
+    text_color = ListProperty((0, 0, 0, 1))

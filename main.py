@@ -8,18 +8,22 @@
 import kivy
 from kivy.lang import Builder
 from kivymd.app import MDApp
-
-
-
 from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.network.urlrequest import UrlRequest
 from kivy.uix.boxlayout import BoxLayout
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.button import MDFlatButton
 from kivy.properties import StringProperty, ListProperty, ObjectProperty
 from kivymd.theming import ThemableBehavior
 from kivymd.uix.list import OneLineIconListItem, MDList
 from kivymd.uix.chip import MDChip
 from kivymd.toast import toast
+from kivymd.utils import asynckivy
+import random
+
+
 
 from kivymd.uix.menu import MDDropdownMenu
 
@@ -34,6 +38,9 @@ from helpers import profile_KV, TagChip
 
 # for chat page
 from helpers import chat_KV, PrivateWindow, GroupWindow, FriendList, WindowManager
+
+# for explore
+from helpers import explore_KV, UserCard, Container
 
 kivy.require("2.0.0")
 
@@ -63,10 +70,7 @@ Screen:
             
             MDBottomNavigationItem:
                 name: 'screen 1'
-                text: 'explore'
-                MDLabel:
-                    text: 'Explore'
-                    halign: 'center'
+                id: explorescreen
     
             MDBottomNavigationItem:
                 name: 'screen 2'
@@ -146,6 +150,18 @@ class Chatty(MDApp):
         self.screen.ids.chatscreen.add_widget(self.chatscreen)
         # end build for chat page
 
+        # build for explore page
+        self.explorescreen = Builder.load_string(explore_KV)
+        self.friend_match_arr =  self.tag_match(self.user['tags'])
+        if len(self.friend_match_arr) < 3:
+            self.friend_match_arr += self.get_all()
+
+        self.set_list()
+        self.set_list_loc()
+
+        self.screen.ids.explorescreen.add_widget(self.explorescreen)
+        # end build for explore page
+
 
         return self.screen
 
@@ -184,6 +200,65 @@ class Chatty(MDApp):
     
     def hey(self):
         toast("hey")
+    # end functions for profile
+
+
+    # functions for explore
+    def set_list(self):
+        self.friend_match_arr =  self.tag_match(self.user['tags'])
+        if len(self.friend_match_arr) < 3:
+            self.friend_match_arr += self.get_all()
+        random.shuffle(self.friend_match_arr)
+        async def set_list():
+            for u in self.friend_match_arr:
+                if u['username']==self.username: 
+                    self.friend_match_arr.remove(u)
+                    continue
+                await asynckivy.sleep(0)
+                userbox = UserCard()
+                userbox.ids.username.text = u['username']
+                userbox.ids.username.secondary_text = u['status']
+                userbox.ids.bio.text = u['bio']
+                userbox.ids.streak.text = str(u['streak'])
+                userbox.ids.tag.text = ', '.join(u['tags'])
+                self.explorescreen.ids.layout.add_widget(userbox)
+        asynckivy.start(set_list())
+
+    def set_list_loc(self):
+        async def set_list_loc():
+            for i in range(20):
+                await asynckivy.sleep(0)
+                userbox = UserCard()
+                userbox.ids.username.text = f'usernameloc {i}'
+                self.explorescreen.ids.layout2.add_widget(userbox)
+        asynckivy.start(set_list_loc())
+      
+
+    def refresh_callback(self, *args,**kwargs):
+        '''A method that updates the state of your application
+        while the spinner remains on the screen.'''
+
+        def refresh_callback(interval):
+            self.explorescreen.ids.layout.clear_widgets()
+            self.set_list()
+            self.explorescreen.ids.refresh_layout.refresh_done()
+            self.tick = 0
+
+        Clock.schedule_once(refresh_callback, 1)
+
+    def refresh_callback_loc(self, *args,**kwargs):
+        '''A method that updates the state of your application
+        while the spinner remains on the screen.'''
+
+        def refresh_callback_loc(interval):
+            self.explorescreen.ids.layout2.clear_widgets()
+            self.set_list_loc()
+            self.explorescreen.ids.refresh_layout2.refresh_done()
+            self.tick = 0
+
+        Clock.schedule_once(refresh_callback_loc, 1)
+
+    # end functions for explore
 
 
 #####################DATABASE##################
@@ -213,6 +288,30 @@ class Chatty(MDApp):
             u'timestamp': firestore.SERVER_TIMESTAMP
         })
         toast(f"{value} removed")
+
+    # db functions for explore
+     # get all the data in a collection
+    def get_all(self,collection="users"):
+        collection_ref = db.collection(f'{collection}')
+        docs = collection_ref.stream()
+        arr = []
+        for doc in docs:
+            print(f'{doc.id} => {doc.to_dict()}')
+            arr.append(doc.to_dict())
+        return arr
+
+       # people with similar interests
+    def tag_match(self,tag=[]):
+        collection_ref = db.collection(u'users')
+        query = collection_ref.where(u'tags', u'array_contains_any', tag)
+        result = query.stream()
+        arr = []
+        for r in result:
+            # print(f'{r.id} => {r.to_dict()}')
+            arr.append(r.to_dict())
+        return arr
+
+    # end db functions for explore
 
 
 if __name__ == '__main__':

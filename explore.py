@@ -152,9 +152,7 @@ Screen:
             ContentNavigationDrawer:
                 screen_manager: screen_manager
                 nav_drawer: nav_drawer
-            
-           
-           
+                    
 '''
 
 class UserCard(MDCard):
@@ -182,7 +180,7 @@ class Explore(MDApp):
         self.theme_cls.primary_hue ='200'
         self.theme_cls.theme_style="Light"
         
-        self.screen = Builder.load_string(explore_KV)
+        self.explorescreen = Builder.load_string(explore_KV)
 
         self.username = "nilay"
         self.user_ref = db.collection(u'users').document(self.username)
@@ -196,7 +194,7 @@ class Explore(MDApp):
         self.set_list()
         self.set_list_loc()
         
-        return self.screen
+        return self.explorescreen
 
     def set_list(self):
         self.friend_match_arr =  self.tag_match(self.user['tags'])
@@ -215,7 +213,7 @@ class Explore(MDApp):
                 userbox.ids.bio.text = u['bio']
                 userbox.ids.streak.text = str(u['streak'])
                 userbox.ids.tag.text = ', '.join(u['tags'])
-                self.screen.ids.layout.add_widget(userbox)
+                self.explorescreen.ids.layout.add_widget(userbox)
         asynckivy.start(set_list())
 
     def set_list_loc(self):
@@ -224,7 +222,7 @@ class Explore(MDApp):
                 await asynckivy.sleep(0)
                 userbox = UserCard()
                 userbox.ids.username.text = f'usernameloc {i}'
-                self.screen.ids.layout2.add_widget(userbox)
+                self.explorescreen.ids.layout2.add_widget(userbox)
         asynckivy.start(set_list_loc())
       
 
@@ -233,9 +231,9 @@ class Explore(MDApp):
         while the spinner remains on the screen.'''
 
         def refresh_callback(interval):
-            self.screen.ids.layout.clear_widgets()
+            self.explorescreen.ids.layout.clear_widgets()
             self.set_list()
-            self.screen.ids.refresh_layout.refresh_done()
+            self.explorescreen.ids.refresh_layout.refresh_done()
             self.tick = 0
 
         Clock.schedule_once(refresh_callback, 1)
@@ -245,9 +243,9 @@ class Explore(MDApp):
         while the spinner remains on the screen.'''
 
         def refresh_callback_loc(interval):
-            self.screen.ids.layout2.clear_widgets()
+            self.explorescreen.ids.layout2.clear_widgets()
             self.set_list_loc()
-            self.screen.ids.refresh_layout2.refresh_done()
+            self.explorescreen.ids.refresh_layout2.refresh_done()
             self.tick = 0
 
         Clock.schedule_once(refresh_callback_loc, 1)
