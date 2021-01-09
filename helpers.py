@@ -70,12 +70,6 @@ profile_KV = '''
                     root.nav_drawer.set_state("close")
                     root.screen_manager.current = "user_info"
             ItemDrawer:
-                icon: "account-multiple-outline"
-                text: "My friends"
-                on_press:
-                    root.nav_drawer.set_state("close")
-                    root.screen_manager.current = "my_friends"
-            ItemDrawer:
                 icon: "account-cog-outline"
                 text: "Settings"
                 on_press:
@@ -229,11 +223,7 @@ Screen:
                                 icon: "fire"
                                 theme_text_color: 'Custom'
                                 text_color: (234.0/255,35.0/255,0.0/255,1)
-            Screen:
-                name:"my_friends"
-                MDLabel:
-                    text: "MY FRIENDS"
-                    halign: "center"
+        
             Screen:
                 name:"settings"
                 MDLabel:
@@ -436,6 +426,7 @@ explore_KV = '''
             icon: "account-plus-outline"
             on_release: 
                 root.add_friend()
+                app.add_friend(username.text)
         Container:
             id: container
           
@@ -525,6 +516,7 @@ class UserCard(MDCard):
         self.dialog = MDDialog(title="Message Sent", text='Keep Exploring!', size_hint=(0.7,1),buttons=[close_button,more_button])
         self.dialog.open()
         print("Friend Added")
+        
         #print(self.username.text)
     
     def close_dialog(self,obj):

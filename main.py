@@ -236,13 +236,18 @@ class Chatty(MDApp):
 
     # functions for explore
     def set_list(self):
+        self.user = self.get_by_username(self.username)
         self.friend_match_arr =  self.tag_match(self.user['tags'])
+        self.friends = self.user['friends']
         if len(self.friend_match_arr) < 3:
             self.friend_match_arr += self.get_all()
         random.shuffle(self.friend_match_arr)
         async def set_list():
             for u in self.friend_match_arr:
                 if u['username']==self.username: 
+                    self.friend_match_arr.remove(u)
+                    continue
+                if u['username'] in self.friends: 
                     self.friend_match_arr.remove(u)
                     continue
                 await asynckivy.sleep(0)
@@ -456,6 +461,7 @@ class Chatty(MDApp):
         return arr
 
        # people with similar interests
+    
     def tag_match(self,tag=[]):
         collection_ref = db.collection(u'users')
         query = collection_ref.where(u'tags', u'array_contains_any', tag)
@@ -486,6 +492,16 @@ class Chatty(MDApp):
 
         })
     # end login db
+
+    def add_friend(self,friend):
+
+    # Atomically add a new tag to the 'tags' array field. you can add multiple.
+        
+        self.user_ref.update({u'friends': firestore.ArrayUnion([friend])})
+
+        self.user_ref.update({
+            u'timestamp': firestore.SERVER_TIMESTAMP
+        })
 
 
 if __name__ == '__main__':
