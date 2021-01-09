@@ -288,10 +288,22 @@ Screen:
                         title: "chat"
                         left_action_items: [["menu", lambda x: nav_drawer.set_state()]]
                         elevation: 5
-                    Screen:    
-                        MDLabel:
-                            text: 'messaging here!'
-                            halign: 'center'
+                    Screen:
+                        msg_log: msg_log    
+                        MDGridLayout:
+                            rows: 2
+                            MDGridLayout:
+                                cols: 1
+                                rows: 0
+                                ScrollView:
+                                    size: self.size
+                                    do_scroll_x: False
+                                    MDLabel:
+                                        id: msg_log
+                                        text_size: self.width,None
+                                        size_hint_y: None
+                                        height: self.texture_size[1]
+                                        font_size: root.height / 30
                     GridLayout:
                         size_hint_y: 0.1
                         cols: 3
@@ -300,16 +312,24 @@ Screen:
                             TextInput:
                                 id: input
                                 hint_text: 'message...'
+                                on_text_validate: 
+                                    app.send_message(input.text)
+                                    input.text=""
+                                multiline: False
                         AnchorLayout:
                             size_hint: (0.1,0)
                             anchor_x: 'center'
                             Button:
                                 text: 'send'
+                                on_release: 
+                                    app.send_message(input.text)
+                                    input.text=""
                         AnchorLayout:
                             size_hint: (0.1,0)
                             anchor_x: 'center'
                             Button:
                                 text: 'media'
+                                
                             
                 
                             

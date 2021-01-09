@@ -43,7 +43,7 @@ from helpers import explore_KV, UserCard, Container
 # for explore
 from helpers import login_KV, WelcomeScreen, MainScreen, LoginScreen, SignupScreen
 
-
+import socket,threading
 
 import firebase_admin
 from firebase_admin import credentials
@@ -57,6 +57,12 @@ default_app = firebase_admin.initialize_app(cred)
 db = firestore.client() 
 kivy.require("2.0.0")
 
+############
+
+global s
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+host = "127.0.0.1";port = 5005
+#######
 
 # bottom navigation - main screen - the tab structure
 screen_helper = """
@@ -341,6 +347,7 @@ class Chatty(MDApp):
                 # self.startscreen.get_screen('loginscreen').manager.current = 'loginscreen'
             except BaseException as err:
                 print(err)
+                toast("oops some error occured")
  
     def login(self):
         loginEmail = self.startscreen.ids.loginscreen.ids.login_email.text
@@ -375,6 +382,7 @@ class Chatty(MDApp):
             
 
         except Exception as e:
+            toast("not found")
             print("not found")
             print(e)
 
@@ -384,6 +392,11 @@ class Chatty(MDApp):
     def after_login(self):
 
         try:
+            # server connection
+            s.connect((host,port))
+            welcome = s.recv(512).decode('utf-8')
+
+            # user info from firebase
             self.user_ref = db.collection(u'users').document(self.username)
             self.user = self.get_by_username(self.username)
             self.profilescreen.ids.username.text = self.username
@@ -429,10 +442,16 @@ class Chatty(MDApp):
             for m in self.user['groups']:
                 self.new_message(m,"..................")
             
+            # server welcome message
+            self.chatscreen.ids.msg_log.text += welcome + "\n"
+        # end for chat
 
             self.startscreen.manager.current= 'myscreen'
-        # end for chat
+            threading.Thread(target=self.handle_messages,args=(self.chatscreen,)).start()
+            return
+
         except Exception as e:
+            toast("oops something happened")
             print("something happened")
             print(e)
         
@@ -571,12 +590,33 @@ class Chatty(MDApp):
         #     u'timestamp': firestore.SERVER_TIMESTAMP
         # })
 
-    def send_message(self,message):
+    def send_private_message(self,message):
         self.user_ref.update({u'messages': firestore.ArrayUnion( (message,) )})
 
         self.user_ref.update({
             u'timestamp': firestore.SERVER_TIMESTAMP
         })
+
+
+
+        # group chat message
+    def send_message(self,to_send_out):
+        try:
+            print('sent')
+            s.send((self.username+" - "+to_send_out).encode('utf-8'))
+            
+        except Exception as e:
+            toast("oops error while sending message")
+            print("Error sending: ",e)
+        
+    def handle_messages(self,obj):
+        while True:
+            try:
+                data = s.recv(1024).decode('utf-8')
+                self.chatscreen.ids.msg_log.text += data + "\n"
+            except Exception as e:
+                toast("oops error while handling the message")
+                print (e)
 
         
             
