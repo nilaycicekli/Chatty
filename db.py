@@ -14,7 +14,7 @@ default_app = firebase_admin.initialize_app(cred)
 db = firestore.client() 
 
 # create a new document
-def add(username, fname, lname, email, bio, streak=0,  tags=[], status='happy', location=(),city=''):
+def add(username, fname, lname, email, bio, streak=0,  tags=[], status='happy', location=(),city='',friends=[]):
     # with specified document id.
     doc_ref = db.collection(u'users').document(f'{username}') 
     doc_ref.set({ # if you uncommented the line above, then chanhe this line to doc_ref.set({, default = db.collection(u'users').add({
@@ -28,7 +28,8 @@ def add(username, fname, lname, email, bio, streak=0,  tags=[], status='happy', 
         'status': status,
         'location': location,
         'created': datetime.datetime.now(),
-        'city':city
+        'city':city,
+        'friends': friends
 
     })
 # create a new user example

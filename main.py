@@ -17,7 +17,7 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
 from kivy.properties import StringProperty, ListProperty, ObjectProperty
 from kivymd.theming import ThemableBehavior
-from kivymd.uix.list import OneLineIconListItem, MDList
+from kivymd.uix.list import OneLineIconListItem, MDList, OneLineListItem, TwoLineAvatarIconListItem , IconLeftWidget
 from kivymd.uix.chip import MDChip
 from kivymd.toast import toast
 from kivymd.utils import asynckivy
@@ -397,28 +397,63 @@ class Chatty(MDApp):
             # end profile screen
 
             # build for explore page
-            self.friend_match_arr =  self.tag_match(self.user['tags'])
-            if len(self.friend_match_arr) < 3:
-                self.friend_match_arr += self.get_all()
+            # self.friend_match_arr =  self.tag_match(self.user['tags'])
+            # self.friends = self.user['friends']
+            # if len(self.friend_match_arr) < 3:
+            #     self.friend_match_arr += self.get_all()
 
             self.set_list()
             self.set_list_loc()
+
 
             self.screen.ids.explorescreen.add_widget(self.explorescreen)
             # end build for explore page
             
             # for chat
             self.screen.ids.chatscreen.add_widget(self.chatscreen)
-        except:
-            print("something happened")
+
+            for u in self.friends:
+                self.chatscreen.ids.friendlist.add_widget(OneLineListItem(text=u))
+
+            # Add messages
+            self.new_message("girl power", "hello")
+            self.new_message("travel", "istanbul this week?")
+            self.new_message("weekend party", "wohoo")
+            self.new_message("pyhon project", "pushed it to github")
+            self.new_message("Whats App", "fine")
+            self.new_message("Me Myself", "some notes...")
+            self.new_message("hmmm", "what??")
+
+            self.new_message_private("nilay", "heyoo")
+            self.new_message_private("sila", "naber niloşş")
+            self.new_message_private("bilal", "i am so sleepy")
+            self.new_message_private("busra", "cuma geliyor musun kelebek")
+            self.new_message_private("betul", "thx")
+            self.new_message_private("ellen", "no")
+            self.new_message_private("jack", "let me think")
+            
+
             self.startscreen.manager.current= 'myscreen'
         # end for chat
+        except Exception as e:
+            print("something happened")
+            print(e)
         
     def logout(self):
         self.startscreen.manager.current = 'loginscreen'
 
 
     # end functions for login and register
+    def new_message(self, name, message):
+        new_message =TwoLineAvatarIconListItem(text=name, secondary_text=message)
+        new_message.add_widget(IconLeftWidget(icon="message-outline"))
+        self.chatscreen.ids.grouplist.add_widget(new_message)
+
+
+    def new_message_private(self, name, message):
+        new_message = TwoLineAvatarIconListItem(text=name, secondary_text=message)
+        new_message.add_widget(IconLeftWidget(icon="message-outline"))
+        self.chatscreen.ids.privatelist.add_widget(new_message)
 
 
 #####################DATABASE##################
@@ -475,7 +510,7 @@ class Chatty(MDApp):
     # end db functions for explore
 
     # login db
-    def add(self,username, email,fname='', lname='',  bio='I am new here!', streak=0,  tags=[], status='happy', location=()):
+    def add(self,username, email,fname='', lname='',  bio='I am new here!', streak=0,  tags=[], status='happy', location=(),city='',friends=[]):
         # with specified document id.
         doc_ref = db.collection(u'users').document(f'{username}') 
         doc_ref.set({ # if you uncommented the line above, then chanhe this line to doc_ref.set({, default = db.collection(u'users').add({
@@ -489,6 +524,8 @@ class Chatty(MDApp):
             'status': status,
             'location': location,
             'created': datetime.datetime.now(),
+            'city':city,
+            'friends': friends
 
         })
     # end login db

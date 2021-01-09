@@ -110,7 +110,7 @@ Screen:
                             id: window_manager
                             PrivateWindow:
                                 name: "privatewindow"
-                                id: groupwindow
+                                id: privatewindow
                                 ScrollView:
                                     MDList:
                                         id: privatelist

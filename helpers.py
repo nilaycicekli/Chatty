@@ -342,22 +342,28 @@ Screen:
                         id: window_manager
                         PrivateWindow:
                             name: "private_window"
+                            ScrollView:
+                                MDList:
+                                    id: privatelist
                         GroupWindow:
                             name: "group_window"
+                            ScrollView:
+                                MDList:
+                                    id: grouplist
                         FriendList:
                             name: "friends_window"
+                            ScrollView:
+                                MDList:
+                                    id: friendlist
                             
 <PrivateWindow>:
     MDLabel:
-        text: 'it works but wont switch!'
         halign: 'center'
 <GroupWindow>:
     MDLabel:
-        text: 'it works!'
         halign: 'center'
 <FriendList>:
     MDLabel:
-        text: 'it works!'
         halign: 'center'                                         
 """
 
