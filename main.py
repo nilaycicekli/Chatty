@@ -17,7 +17,7 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
 from kivy.properties import StringProperty, ListProperty, ObjectProperty
 from kivymd.theming import ThemableBehavior
-from kivymd.uix.list import OneLineIconListItem, MDList, OneLineListItem, TwoLineAvatarIconListItem , IconLeftWidget
+from kivymd.uix.list import OneLineIconListItem, MDList, OneLineListItem, TwoLineAvatarIconListItem , IconLeftWidget, OneLineAvatarIconListItem
 from kivymd.uix.chip import MDChip
 from kivymd.toast import toast
 from kivymd.utils import asynckivy
@@ -35,7 +35,7 @@ import requests
 from helpers import profile_KV, TagChip
 
 # for chat page
-from helpers import chat_KV, PrivateWindow, GroupWindow, FriendList, WindowManager
+from helpers import chat_KV, PrivateWindow, GroupWindow, FriendList, WindowManager, FriendItem
 
 # for explore
 from helpers import explore_KV, UserCard, Container
@@ -239,17 +239,23 @@ class Chatty(MDApp):
         self.user = self.get_by_username(self.username)
         self.friend_match_arr =  self.tag_match(self.user['tags'])
         self.friends = self.user['friends']
+        for u in self.friend_match_arr:
+            if u['username']==self.username: 
+                self.friend_match_arr.remove(u)
+            if u['username'] in self.friends: 
+                self.friend_match_arr.remove(u)
+
         if len(self.friend_match_arr) < 3:
             self.friend_match_arr += self.get_all()
-        random.shuffle(self.friend_match_arr)
-        async def set_list():
             for u in self.friend_match_arr:
                 if u['username']==self.username: 
                     self.friend_match_arr.remove(u)
-                    continue
                 if u['username'] in self.friends: 
                     self.friend_match_arr.remove(u)
-                    continue
+
+        random.shuffle(self.friend_match_arr)
+        async def set_list():
+            for u in self.friend_match_arr:
                 await asynckivy.sleep(0)
                 userbox = UserCard()
                 userbox.ids.username.text = u['username']
@@ -413,24 +419,15 @@ class Chatty(MDApp):
             self.screen.ids.chatscreen.add_widget(self.chatscreen)
 
             for u in self.friends:
-                self.chatscreen.ids.friendlist.add_widget(OneLineListItem(text=u))
+                self.chatscreen.ids.friendlist.add_widget(FriendItem(text=u))
 
             # Add messages
-            self.new_message("girl power", "hello")
-            self.new_message("travel", "istanbul this week?")
-            self.new_message("weekend party", "wohoo")
-            self.new_message("pyhon project", "pushed it to github")
-            self.new_message("Whats App", "fine")
-            self.new_message("Me Myself", "some notes...")
-            self.new_message("hmmm", "what??")
 
-            self.new_message_private("nilay", "heyoo")
-            self.new_message_private("sila", "naber niloşş")
-            self.new_message_private("bilal", "i am so sleepy")
-            self.new_message_private("busra", "cuma geliyor musun kelebek")
-            self.new_message_private("betul", "thx")
-            self.new_message_private("ellen", "no")
-            self.new_message_private("jack", "let me think")
+            for m in self.user['messages']:
+                self.new_message_private(m['from'],m['content'])
+
+            for m in self.user['groups']:
+                self.new_message(m,"..................")
             
 
             self.startscreen.manager.current= 'myscreen'
@@ -454,6 +451,8 @@ class Chatty(MDApp):
         new_message = TwoLineAvatarIconListItem(text=name, secondary_text=message)
         new_message.add_widget(IconLeftWidget(icon="message-outline"))
         self.chatscreen.ids.privatelist.add_widget(new_message)
+
+    
 
 
 #####################DATABASE##################
@@ -525,20 +524,62 @@ class Chatty(MDApp):
             'location': location,
             'created': datetime.datetime.now(),
             'city':city,
-            'friends': friends
-
+            'friends': friends,
+            'messages': [],
+            'groups':[],
         })
     # end login db
 
     def add_friend(self,friend):
 
-    # Atomically add a new tag to the 'tags' array field. you can add multiple.
+    # Atomically add a new friend to the 'friends' array field. you can add multiple.
         
         self.user_ref.update({u'friends': firestore.ArrayUnion([friend])})
 
         self.user_ref.update({
             u'timestamp': firestore.SERVER_TIMESTAMP
         })
+
+        self.chatscreen.ids.friendlist.add_widget(FriendItem(text=friend))
+
+        # automatically send a hello message to your new friend
+        friend_ref = db.collection(u'users').document(friend)
+        hello_msg =( {'from':self.username,'content':"hello! shall we chat?"},)
+        friend_ref.update({u'messages': firestore.ArrayUnion(hello_msg)})
+
+        friend_ref.update({
+            u'timestamp': firestore.SERVER_TIMESTAMP
+        })
+
+        self.new_message_private(friend,"hello! shall we chat?")
+
+    
+    def delete_friend(self,friend):
+
+    # Atomically add a new tag to the 'tags' array field. you can add multiple.
+        self.chatscreen.ids.friendlist.remove_widget(friend)
+           #  remove a friend
+        self.user_ref.update({u'friends': firestore.ArrayRemove([friend.text])})
+
+        self.user_ref.update({
+            u'timestamp': firestore.SERVER_TIMESTAMP
+        })
+
+        # self.user_ref.update({u'friends': firestore.ArrayUnion([friend])})
+
+        # self.user_ref.update({
+        #     u'timestamp': firestore.SERVER_TIMESTAMP
+        # })
+
+    def send_message(self,message):
+        self.user_ref.update({u'messages': firestore.ArrayUnion( (message,) )})
+
+        self.user_ref.update({
+            u'timestamp': firestore.SERVER_TIMESTAMP
+        })
+
+        
+            
 
 
 if __name__ == '__main__':

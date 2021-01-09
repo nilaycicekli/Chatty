@@ -3,12 +3,14 @@ from kivy.uix.boxlayout import BoxLayout
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
 from kivy.properties import StringProperty, ListProperty, ObjectProperty
-from kivymd.uix.list import OneLineIconListItem, MDList
+from kivymd.uix.list import OneLineIconListItem, MDList, OneLineAvatarIconListItem
 from kivymd.theming import ThemableBehavior
 from kivymd.uix.chip import MDChip
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivymd.uix.card import MDCard
 from kivymd.uix.list import IRightBodyTouch
+from kivymd.toast import toast
+
 
 
 
@@ -272,7 +274,7 @@ class DrawerList(ThemableBehavior, MDList):
         instance_item.text_color = self.theme_cls.primary_color
 
 chat_KV = """
-# the whole screen.
+# the whole chat screen.
 Screen:
     window_manager: window_manager
     NavigationLayout:
@@ -364,9 +366,22 @@ Screen:
         halign: 'center'
 <FriendList>:
     MDLabel:
-        halign: 'center'                                         
-"""
+        halign: 'center'     
 
+<FriendItem>:
+    id: frienditem
+    text: ""
+    font_style: 'H6'
+    size_hint_y: None
+    IconLeftWidget:
+        icon: "account-minus-outline"
+        on_release: 
+            root.delete_friend()
+            app.delete_friend(frienditem)                                    
+"""
+class FriendItem(OneLineAvatarIconListItem):
+    def delete_friend(self):
+        toast(self.text+" removed from friends")
 # private-chats.
 class PrivateWindow(Screen):
     pass
@@ -519,7 +534,7 @@ class UserCard(MDCard):
     def add_friend(self):
         close_button = MDFlatButton(text="close",on_release= self.close_dialog)
         more_button = MDFlatButton(text="more")
-        self.dialog = MDDialog(title="Message Sent", text='Keep Exploring!', size_hint=(0.7,1),buttons=[close_button,more_button])
+        self.dialog = MDDialog(title="Friend Added", text='Message sent. You can keep exploring!', size_hint=(0.7,1),buttons=[close_button,more_button])
         self.dialog.open()
         print("Friend Added")
         
