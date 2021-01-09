@@ -345,6 +345,7 @@ class Chatty(MDApp):
                 toast("success")
                 print('Sucessfully created new user: {0}'.format(user.uid))
                 # self.startscreen.get_screen('loginscreen').manager.current = 'loginscreen'
+                self.startscreen.manager.current = 'loginscreen'
             except BaseException as err:
                 print(err)
                 toast("oops some error occured")
