@@ -8,8 +8,8 @@
 import kivy
 from kivy.lang import Builder
 from kivymd.app import MDApp
-from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen, ScreenManager
+from kivy.clock import Clock
 from kivy.network.urlrequest import UrlRequest
 from kivy.uix.boxlayout import BoxLayout
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -21,17 +21,15 @@ from kivymd.uix.list import OneLineIconListItem, MDList
 from kivymd.uix.chip import MDChip
 from kivymd.toast import toast
 from kivymd.utils import asynckivy
-import random
-
-
-
 from kivymd.uix.menu import MDDropdownMenu
 
-import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import firestore
-
 import datetime
+import json
+import random
+import requests
+
+
+
 
 # for profile
 from helpers import profile_KV, TagChip
@@ -42,21 +40,29 @@ from helpers import chat_KV, PrivateWindow, GroupWindow, FriendList, WindowManag
 # for explore
 from helpers import explore_KV, UserCard, Container
 
-kivy.require("2.0.0")
+# for explore
+from helpers import login_KV, WelcomeScreen, MainScreen, LoginScreen, SignupScreen
 
 
+
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
+from firebase_admin import auth
 # Use the application default credentials
 cred = credentials.Certificate('Chatty/chatty-y-firebase-adminsdk-zb1ow-7b79045fa0.json')
 default_app = firebase_admin.initialize_app(cred)
 
 # initialize firestore
 db = firestore.client() 
+kivy.require("2.0.0")
 
 
-# bottom navigation
+# bottom navigation - main screen - the tab structure
 screen_helper = """
 
-Screen:
+<MyScreen>:
+    name: 'myscreen'
     BoxLayout:
         orientation: 'vertical'
         # MDToolbar:
@@ -80,32 +86,46 @@ Screen:
                 name: 'screen 3'
                 id: profilescreen
 
+MyScreen:
+
 """
+class MyScreen(Screen):
+    pass
 
 sm = ScreenManager()
 sm.add_widget(PrivateWindow(name='private'))
 sm.add_widget(GroupWindow(name='group'))
 sm.add_widget(FriendList(name='friends'))
 
+sm.add_widget(WelcomeScreen(name = 'welcomescreen'))
+sm.add_widget(MainScreen(name = 'mainscreen'))
+sm.add_widget(LoginScreen(name = 'loginscreen'))
+sm.add_widget(SignupScreen(name = 'signupscreen'))
+
+sm.add_widget(MyScreen(name = 'myscreen'))
+
+
+
+
 class Chatty(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # profile screen
         self.profilescreen = Builder.load_string(profile_KV)
-        self.username = "nilay"
-        self.user_ref = db.collection(u'users').document(self.username)
-        self.user = self.get_by_username(self.username)
-        self.profilescreen.ids.username.text = self.username
-        self.profilescreen.ids.fname.text = self.user['fname']
-        self.profilescreen.ids.lname.text = self.user['lname']
-        self.profilescreen.ids.email.text = self.user['email']
-        self.profilescreen.ids.status.text = self.user['status']
-        self.profilescreen.ids.bio.text = self.user['bio']
-        self.profilescreen.ids.streak.secondary_text = str(self.user['streak'])
-        # self.profilescreen.ids.location.secondary_text = self.user['city']
-        self.profilescreen.ids.location.secondary_text = "istanbul"
-        for t in self.user['tags']:
-            self.profilescreen.ids.tag_box.add_widget(TagChip(label=t,icon="coffee"))
+        self.username = ""
+        # self.user_ref = db.collection(u'users').document(self.username)
+        # self.user = self.get_by_username(self.username)
+        # self.profilescreen.ids.username.text = self.username
+        # self.profilescreen.ids.fname.text = self.user['fname']
+        # self.profilescreen.ids.lname.text = self.user['lname']
+        # self.profilescreen.ids.email.text = self.user['email']
+        # self.profilescreen.ids.status.text = self.user['status']
+        # self.profilescreen.ids.bio.text = self.user['bio']
+        # self.profilescreen.ids.streak.secondary_text = str(self.user['streak'])
+        # # self.profilescreen.ids.location.secondary_text = self.user['city']
+        # self.profilescreen.ids.location.secondary_text = "istanbul"
+        # for t in self.user['tags']:
+        #     self.profilescreen.ids.tag_box.add_widget(TagChip(label=t,icon="coffee"))
         # end profile screen
 
     def build(self):
@@ -115,11 +135,12 @@ class Chatty(MDApp):
         self.screen = Builder.load_string(screen_helper)
 
         # build for profile screen
-        menu_items = [{"icon_right": None, "text": "online"},
-        {"icon": "mail", "text": "offline"},
-        {"icon": "email", "text": "happy"},
-        {"icon": "git", "text": "sad"},
-        {"icon": "git", "text": "away"},]
+        menu_items = [{ "text": "online"},
+        {"text": "offline"},
+        { "text": "happy"},
+        { "text": "sad"},
+        {"text": "away"},]
+
         self.menu = MDDropdownMenu(
             caller=self.profilescreen.ids.status,
             items=menu_items,
@@ -133,6 +154,7 @@ class Chatty(MDApp):
         {"text": "chilling"},
         {"text": "dancing"},
         {"text": "music"},]
+
         self.tag_menu = MDDropdownMenu(
             caller=self.profilescreen.ids.tags,
             items=tag_menu_items,
@@ -140,30 +162,36 @@ class Chatty(MDApp):
             callback=self.set_item_tag,
             width_mult=3,
         )
-
-        self.screen.ids.profilescreen.add_widget(self.profilescreen)
+        # self.screen.ids.profilescreen.add_widget(self.profilescreen)
         # end build for profile screen
 
 
         # build for chat page
         self.chatscreen = Builder.load_string(chat_KV)
-        self.screen.ids.chatscreen.add_widget(self.chatscreen)
+        
         # end build for chat page
 
         # build for explore page
         self.explorescreen = Builder.load_string(explore_KV)
-        self.friend_match_arr =  self.tag_match(self.user['tags'])
-        if len(self.friend_match_arr) < 3:
-            self.friend_match_arr += self.get_all()
+        # self.friend_match_arr =  self.tag_match(self.user['tags'])
+        # if len(self.friend_match_arr) < 3:
+        #     self.friend_match_arr += self.get_all()
 
-        self.set_list()
-        self.set_list_loc()
+        # self.set_list()
+        # self.set_list_loc()
 
-        self.screen.ids.explorescreen.add_widget(self.explorescreen)
+        # self.screen.ids.explorescreen.add_widget(self.explorescreen)
         # end build for explore page
 
+        # build for login and register
+        self.startscreen = Builder.load_string(login_KV)
+        self.url  = "https://chatty-y.firebaseio.com/.json"
+        self.startscreen.manager.add_widget(self.screen)
+        # self.startscreen.manager.current = 'loginscreen'
+        # end build for login and register
 
-        return self.screen
+
+        return self.startscreen
 
     # functions for profile screen
     def set_item(self, instance):
@@ -190,6 +218,9 @@ class Chatty(MDApp):
         tag = self.profilescreen.ids.tags.text
         if len(self.user['tags']) >= 4:
                 toast("you can have 4 tags at most :( ")
+                return
+        if(tag in self.user['tags']):
+                toast("you already have this one.")
                 return
         if tag:
             self.profilescreen.ids.tag_box.add_widget(TagChip(label=tag,icon="coffee"))
@@ -260,6 +291,130 @@ class Chatty(MDApp):
 
     # end functions for explore
 
+    # functions for login and register
+    def signup(self):
+        signupEmail = self.startscreen.ids.signupscreen.ids.signup_email.text
+        signupPassword = self.startscreen.ids.signupscreen.ids.signup_password.text
+        signupUsername = self.startscreen.ids.signupscreen.ids.signup_username.text
+    
+        if signupEmail.split() == [] or signupPassword.split() == [] or signupUsername.split() == []:
+            cancel_btn_username_dialogue = MDFlatButton(text = 'Retry',on_release = self.close_username_dialog)
+            self.dialog = MDDialog(title = 'Invalid Input',text = 'Please Enter a valid Input',size_hint = (0.7,0.2),buttons = [cancel_btn_username_dialogue])
+            self.dialog.open()
+        if len(signupUsername.split())>1:
+            cancel_btn_username_dialogue = MDFlatButton(text = 'Retry',on_release = self.close_username_dialog)
+            self.dialog = MDDialog(title = 'Invalid Username',text = 'Please enter username without space',size_hint = (0.7,0.2),buttons = [cancel_btn_username_dialogue])
+            self.dialog.open()
+   
+        else:
+            #  print(signupEmail,signupPassword)
+            #  signup_info = str({f'\"{signupEmail}\":{{"Password":\"{signupPassword}\","Username":\"{signupUsername}\"}}'})
+            #  signup_info = signup_info.replace(".","-")
+            #  signup_info = signup_info.replace("\'","")
+            #  to_database = json.loads(signup_info)
+            #  print((to_database))
+            #  requests.patch(url = self.url,json = to_database)
+            #  self.startscreen.get_screen('loginscreen').manager.current = 'loginscreen'
+            try:
+                user = auth.create_user(
+                email=signupEmail,
+                email_verified=True,
+                password=signupPassword,
+                display_name=signupUsername,
+                disabled=False)
+
+                self.add(username=signupUsername,email=signupEmail)
+
+                toast("success")
+                print('Sucessfully created new user: {0}'.format(user.uid))
+                # self.startscreen.get_screen('loginscreen').manager.current = 'loginscreen'
+            except BaseException as err:
+                print(err)
+ 
+    def login(self):
+        loginEmail = self.startscreen.ids.loginscreen.ids.login_email.text
+        loginPassword = self.startscreen.ids.loginscreen.ids.login_password.text
+
+        rest_api_url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword"
+        web_api_key = 'AIzaSyDURk0eVsmw2wxqGQda0XqQfVrDNkmYAro'
+
+        try:
+            payload = json.dumps({
+            "email": loginEmail,
+            "password": loginPassword,
+            "returnSecureToken":True
+            })
+            
+            r = requests.post(rest_api_url,
+                        params={"key": web_api_key},
+                        data=payload)
+
+            self.username = r.json()["displayName"]
+
+        # supported_loginEmail = loginEmail.replace('.','-')
+        # supported_loginPassword = loginPassword.replace('.','-')
+        # request  = requests.get(self.url+'?auth='+self.auth)
+        # data = request.json()
+        # emails= set()
+        # for key,value in data.items():
+        #     emails.add(key)
+        # if supported_loginEmail in emails and supported_loginPassword == data[supported_loginEmail]['Password']:
+        #self.username = data[supported_loginEmail]['Username']
+            # self.startscreen.get_screen('mainscreen').manager.current = 'mainscreen'
+            
+
+        except Exception as e:
+            print("not found")
+            print(e)
+
+    def close_username_dialog(self,obj):
+        self.dialog.dismiss()
+   
+    def after_login(self):
+
+        try:
+            self.user_ref = db.collection(u'users').document(self.username)
+            self.user = self.get_by_username(self.username)
+            self.profilescreen.ids.username.text = self.username
+            self.profilescreen.ids.fname.text = self.user['fname']
+            self.profilescreen.ids.lname.text = self.user['lname']
+            self.profilescreen.ids.email.text = self.user['email']
+            self.profilescreen.ids.status.text = self.user['status']
+            self.profilescreen.ids.bio.text = self.user['bio']
+            self.profilescreen.ids.streak.secondary_text = str(self.user['streak'])
+            # self.profilescreen.ids.location.secondary_text = self.user['city']
+            self.profilescreen.ids.location.secondary_text = "istanbul"
+            for t in self.user['tags']:
+                self.profilescreen.ids.tag_box.add_widget(TagChip(label=t,icon="coffee"))
+
+            self.screen.ids.profilescreen.add_widget(self.profilescreen)
+            
+            # end profile screen
+
+            # build for explore page
+            self.friend_match_arr =  self.tag_match(self.user['tags'])
+            if len(self.friend_match_arr) < 3:
+                self.friend_match_arr += self.get_all()
+
+            self.set_list()
+            self.set_list_loc()
+
+            self.screen.ids.explorescreen.add_widget(self.explorescreen)
+            # end build for explore page
+            
+            # for chat
+            self.screen.ids.chatscreen.add_widget(self.chatscreen)
+        except:
+            print("something happened")
+            self.startscreen.manager.current= 'myscreen'
+        # end for chat
+        
+    def logout(self):
+        self.startscreen.manager.current = 'loginscreen'
+
+
+    # end functions for login and register
+
 
 #####################DATABASE##################
     # get user info
@@ -312,6 +467,25 @@ class Chatty(MDApp):
         return arr
 
     # end db functions for explore
+
+    # login db
+    def add(self,username, email,fname='', lname='',  bio='I am new here!', streak=0,  tags=[], status='happy', location=()):
+        # with specified document id.
+        doc_ref = db.collection(u'users').document(f'{username}') 
+        doc_ref.set({ # if you uncommented the line above, then chanhe this line to doc_ref.set({, default = db.collection(u'users').add({
+            'username':username,
+            'fname':fname,
+            'lname':lname,
+            'email':email,
+            'streak':streak,
+            'bio':bio,
+            'tags':tags,
+            'status': status,
+            'location': location,
+            'created': datetime.datetime.now(),
+
+        })
+    # end login db
 
 
 if __name__ == '__main__':

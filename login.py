@@ -156,11 +156,29 @@ ScreenManager:
     
 <MainScreen>:
     name: 'mainscreen'
-    MDLabel:
-        id:username_info
-        text:'Hello Main'
-        font_style:'H1'
-        halign:'center'
+        BoxLayout:
+            orientation: 'vertical'
+            # MDToolbar:
+            #     halign: 'center'
+            #     title: 'Chatty'
+            #     md_bg_color: .2, .2, .2, 1
+            #     specific_text_color: 1, 1, 1, 1
+                
+            MDBottomNavigation:
+                panel_color: .2, .2, .2, 1
+                
+                MDBottomNavigationItem:
+                    name: 'screen 1'
+                    id: explorescreen
+        
+                MDBottomNavigationItem:
+                    name: 'screen 2'
+                    id: chatscreen
+        
+                MDBottomNavigationItem:
+                    name: 'screen 3'
+                    id: profilescreen
+
 '''
 
 
@@ -181,16 +199,16 @@ sm.add_widget(SignupScreen(name = 'signupscreen'))
 
 class LoginApp(MDApp):
     def build(self):
-        self.strng = Builder.load_string(help_str)
+        self.loginscreen = Builder.load_string(help_str)
         self.url  = "https://chatty-y.firebaseio.com/.json"
         self.username="anonymus"
-        return self.strng
+        return self.loginscreen
 
     def signup(self):
         
-        signupEmail = self.strng.get_screen('signupscreen').ids.signup_email.text
-        signupPassword = self.strng.get_screen('signupscreen').ids.signup_password.text
-        signupUsername = self.strng.get_screen('signupscreen').ids.signup_username.text
+        signupEmail = self.loginscreen.get_screen('signupscreen').ids.signup_email.text
+        signupPassword = self.loginscreen.get_screen('signupscreen').ids.signup_password.text
+        signupUsername = self.loginscreen.get_screen('signupscreen').ids.signup_username.text
     
         if signupEmail.split() == [] or signupPassword.split() == [] or signupUsername.split() == []:
             cancel_btn_username_dialogue = MDFlatButton(text = 'Retry',on_release = self.close_username_dialog)
@@ -209,7 +227,7 @@ class LoginApp(MDApp):
             #  to_database = json.loads(signup_info)
             #  print((to_database))
             #  requests.patch(url = self.url,json = to_database)
-            #  self.strng.get_screen('loginscreen').manager.current = 'loginscreen'
+            #  self.loginscreen.get_screen('loginscreen').manager.current = 'loginscreen'
             try:
                 user = auth.create_user(
                 email=signupEmail,
@@ -222,16 +240,13 @@ class LoginApp(MDApp):
 
                 toast("success")
                 print('Sucessfully created new user: {0}'.format(user.uid))
-                self.strng.get_screen('loginscreen').manager.current = 'loginscreen'
+                self.loginscreen.get_screen('loginscreen').manager.current = 'loginscreen'
             except BaseException as err:
                 print(err)
-
-
-    # web_api_key = 'AIzaSyDURk0eVsmw2wxqGQda0XqQfVrDNkmYAro'
-    # rest_api_url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword"
+ 
     def login(self):
-        loginEmail = self.strng.get_screen('loginscreen').ids.login_email.text
-        loginPassword = self.strng.get_screen('loginscreen').ids.login_password.text
+        loginEmail = self.loginscreen.get_screen('loginscreen').ids.login_email.text
+        loginPassword = self.loginscreen.get_screen('loginscreen').ids.login_password.text
 
         rest_api_url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword"
         web_api_key = 'AIzaSyDURk0eVsmw2wxqGQda0XqQfVrDNkmYAro'
@@ -258,13 +273,14 @@ class LoginApp(MDApp):
         #     emails.add(key)
         # if supported_loginEmail in emails and supported_loginPassword == data[supported_loginEmail]['Password']:
         #self.username = data[supported_loginEmail]['Username']
-            self.strng.get_screen('mainscreen').manager.current = 'mainscreen'
+            self.loginscreen.get_screen('mainscreen').manager.current = 'mainscreen'
         except:
             print("not found")
 
     def close_username_dialog(self,obj):
         self.dialog.dismiss()
     def username_changer(self):
-        self.strng.get_screen('mainscreen').ids.username_info.text = f"welcome {self.username}"
+        # self.loginscreen.get_screen('mainscreen').ids.username_info.text = f"welcome {self.username}"
+        pass
 
 LoginApp().run()

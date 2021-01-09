@@ -94,7 +94,8 @@ profile_KV = '''
                 text_color: (234.0/255,35.0/255,0.0/255,1)
                 on_press:
                     root.nav_drawer.set_state("close")
-                    root.screen_manager.current = "logout"
+                    # root.manager.current = "welcomescreen"
+                    app.logout()
                 
 
 Screen:
@@ -124,7 +125,7 @@ Screen:
                         spacing: 30
                         MDTextField:
                             id: username
-                            text: "john"
+                            text: "nilay"
                             hint_text: "username"
                             helper_text: "edit your username"
                             helper_text_mode: "on_focus"
@@ -536,3 +537,194 @@ class Container(IRightBodyTouch, MDBoxLayout):
 class ItemDrawerExplore(OneLineIconListItem):
     icon = StringProperty()
     text_color = ListProperty((0, 0, 0, 1))
+
+# login and register
+login_KV = '''
+<WelcomeScreen>:
+    name:'welcomescreen'
+    MDLabel:
+        text:'Login'
+        font_style:'H2'
+        halign:'center'
+        pos_hint: {'center_y':0.9}
+    MDLabel:
+        text:'&'
+        font_style:'H2'
+        halign:'center'
+        pos_hint: {'center_y':0.7}
+    MDLabel:
+        text:'Signup'
+        font_style:'H2'
+        halign:'center'
+        pos_hint: {'center_y':0.5}
+    MDRaisedButton:
+        text:'Login'
+        pos_hint : {'center_x':0.4,'center_y':0.3}
+        size_hint: (0.13,0.1)
+        on_press: 
+            root.manager.current = 'loginscreen'
+            root.manager.transition.direction = 'left'
+    MDRaisedButton:
+        text:'Signup'
+        pos_hint : {'center_x':0.6,'center_y':0.3}
+        size_hint: (0.13,0.1)
+        on_press:
+            root.manager.current = 'signupscreen'
+            root.manager.transition.direction = 'left'
+        
+<LoginScreen>:
+    name:'loginscreen'
+    MDLabel:
+        text:'Login'
+        font_style:'H2'
+        halign:'center'
+        pos_hint: {'center_y':0.9}
+    MDTextField:
+        id: login_email
+        pos_hint: {'center_y':0.6,'center_x':0.5}
+        size_hint : (0.7,0.1)
+        hint_text: 'Email'
+        helper_text:'Required'
+        helper_text_mode:  'on_error'
+        icon_right: 'account'
+        icon_right_color: app.theme_cls.primary_color
+        required: True
+        mode: "rectangle"
+    MDTextField:
+        id:login_password
+        pos_hint: {'center_y':0.4,'center_x':0.5}
+        size_hint : (0.7,0.1)
+        hint_text: 'Password'
+        helper_text:'Required'
+        helper_text_mode:  'on_error'
+        icon_right: 'account'
+        icon_right_color: app.theme_cls.primary_color
+        required: True
+        mode: "rectangle"
+    MDRaisedButton:
+        text:'Login'
+        size_hint: (0.13,0.07)
+        pos_hint: {'center_x':0.5,'center_y':0.2}
+        on_press:
+            app.login()
+            app.after_login()
+            root.manager.current = 'myscreen'
+
+            
+        
+    MDTextButton:
+        text: 'Create an account'
+        pos_hint: {'center_x':0.5,'center_y':0.1}
+        on_press:
+            root.manager.current = 'signupscreen'
+            root.manager.transition.direction = 'up'
+<SignupScreen>:
+    name:'signupscreen'
+    MDLabel:
+        text:'Signup'
+        font_style:'H2'
+        halign:'center'
+        pos_hint: {'center_y':0.9}
+    MDTextField:
+        id:signup_email
+        pos_hint: {'center_y':0.6,'center_x':0.5}
+        size_hint : (0.7,0.1)
+        hint_text: 'Email'
+        helper_text:'Required'
+        helper_text_mode:  'on_error'
+        icon_right: 'account'
+        icon_right_color: app.theme_cls.primary_color
+        required: True
+        mode: "rectangle"
+        text:''
+    MDTextField:
+        id:signup_username
+        pos_hint: {'center_y':0.75,'center_x':0.5}
+        size_hint : (0.7,0.1)
+        hint_text: 'Username'
+        helper_text:'Required'
+        helper_text_mode:  'on_error'
+        icon_right: 'account'
+        icon_right_color: app.theme_cls.primary_color
+        required: True
+        text:''
+    MDTextField:
+        id:signup_password
+        pos_hint: {'center_y':0.4,'center_x':0.5}
+        size_hint : (0.7,0.1)
+        hint_text: 'Password'
+        helper_text:'Required'
+        helper_text_mode:  'on_error'
+        icon_right: 'account'
+        icon_right_color: app.theme_cls.primary_color
+        required: True
+        mode: "rectangle"
+        min_length: 6
+        text:''
+    MDRaisedButton:
+        text:'Signup'
+        size_hint: (0.13,0.07)
+        pos_hint: {'center_x':0.5,'center_y':0.2}
+        on_press: app.signup()
+    MDTextButton:
+        text: 'Already have an account'
+        pos_hint: {'center_x':0.5,'center_y':0.1}
+        on_press:
+            root.manager.current = 'loginscreen'
+            root.manager.transition.direction = 'down'
+
+<MainScreen>:
+    name: 'mainscreen'
+    BoxLayout:
+        orientation: 'vertical'
+        # MDToolbar:
+        #     halign: 'center'
+        #     title: 'Chatty'
+        #     md_bg_color: .2, .2, .2, 1
+        #     specific_text_color: 1, 1, 1, 1
+            
+        MDBottomNavigation:
+            panel_color: .2, .2, .2, 1
+            
+            MDBottomNavigationItem:
+                name: 'screen 1'
+                id: explorescreen
+                text:"hey"
+    
+            MDBottomNavigationItem:
+                name: 'screen 2'
+                id: chatscreen
+    
+            MDBottomNavigationItem:
+                name: 'screen 3'
+                id: profilescreen
+
+Screen:
+    manager: main_screen_manager
+    ScreenManager:
+        id: main_screen_manager
+        WelcomeScreen:
+            id: welcomescreen
+        LoginScreen:
+            id: loginscreen
+        SignupScreen:
+            id: signupscreen
+        MainScreen:
+            id: mainscreen
+
+
+'''
+
+
+class WelcomeScreen(Screen):
+    pass
+class MainScreen(Screen):
+    pass
+class LoginScreen(Screen):
+    pass
+class SignupScreen(Screen):
+    pass
+
+
+
+
