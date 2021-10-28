@@ -1,5 +1,5 @@
 # Chatty
-A desktop chat app for lonely people to find friends based on their interests.
-- backend with python
-- frontend with kivyMD
+A desktop real-time chat app for people to find friends based on their interests.
+- python for backend
+- kivyMD for frontend
 - firebase firestore as database
